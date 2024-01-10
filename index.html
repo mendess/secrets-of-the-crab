@@ -95,7 +95,7 @@
     code span.vs { color: #cc9393; } /* VerbatimString */
     code span.wa { color: #7f9f7f; font-weight: bold; } /* Warning */
   </style>
-  <link rel="stylesheet" href="./reveal.js/dist/theme/white.css" id="theme">
+  <link rel="stylesheet" href="./reveal.js/dist/theme/black.css" id="theme">
 </head>
 <body>
   <div class="reveal">
@@ -107,6 +107,7 @@
   <p class="author">Pedro Mendes</p>
 </section>
 
+<section>
 <section id="who-am-i" class="title-slide slide level1">
 <h1>Who am I?</h1>
 <ul>
@@ -114,14 +115,18 @@
 Ex estudante da Eng. Informática
 </li>
 <li class="fragment">
-Ávido programador de rust
+Escrevo rust nos meus tempos livres
 </li>
 <li class="fragment">
-Brinco com nuvens na cloudflare
+Pagam me para escrever Rust nos meus tempos não livres
 </li>
 </ul>
 </section>
-
+<section id="disclaimer" class="slide level2">
+<h2><strong>Disclaimer</strong></h2>
+<p>Vai haver um bocadinho de assembly nesta talk 👀. Espero que tenham
+prestado atenção ao Proença.</p>
+</section></section>
 <section>
 <section id="enums-and-their-niches" class="title-slide slide level1">
 <h1>Enums and their niches</h1>
@@ -129,7 +134,8 @@ Brinco com nuvens na cloudflare
 </section>
 <section id="enums-são-sum-types" class="slide level2">
 <h2>Enums são <code>sum types</code></h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode rs"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">enum</span> MaybeNumbers <span class="op">{</span></span>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">enum</span> MaybeNumbers <span class="op">{</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    Just(<span class="dt">Vec</span><span class="op">&lt;</span><span class="dt">i32</span><span class="op">&gt;</span>)<span class="op">,</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    Nothing<span class="op">,</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
@@ -138,6 +144,116 @@ Brinco com nuvens na cloudflare
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> has_numbers <span class="op">=</span> <span class="pp">MaybeNumbers::</span>Just(<span class="pp">vec!</span>[<span class="dv">1</span><span class="op">,</span> <span class="dv">2</span><span class="op">,</span> <span class="dv">3</span>])<span class="op">;</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> no_numbers <span class="op">=</span> <span class="pp">MaybeNumbers::</span>Nothing<span class="op">;</span></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</section>
+<section id="memory-layout" class="slide level2">
+<h2>Memory layout</h2>
+<pre><code>size_of::&lt;Vec&lt;i32&gt;&gt;() == 24;</code></pre>
+<pre><code>+--------+------------------------+
+|  tag   | Just / Nothing         |
+|        |                        |
+|8 bytes | 24 bytes               |
++--------+------------------------+
+  ^         ^
+   \         \ Espaço suficiente para a
+    \          maior variante do enum
+     \
+      Tag que pode ser 0 para Just ou 1 para Nothing</code></pre>
+<p>Total: 32 bytes</p>
+<div class="fragment">
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span>MaybeNumbers<span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">24</span><span class="op">;</span></span></code></pre></div>
+</div>
+<div class="fragment">
+<p>???</p>
+</div>
+</section>
+<section id="niche-optimization." class="slide level2">
+<h2>Niche optimization.</h2>
+<p>Na verdade não precisamos de uma tag porque há estados inválidos para
+um <code>Vec</code>!</p>
+<div class="fragment">
+<p><strong>O pointer interior nunca pode ser null!</strong></p>
+</div>
+<div class="fragment">
+<p>Logo o compilador pode usar a localização de memoria onde o pointer
+seria no Vec para distinguir entre <code>Just</code> e
+<code>Nothing</code>.</p>
+<p>Mas será que <code>Vec</code> é especial?</p>
+</div>
+<p><img class="fragment" src="./assets/bye-alice-rabbit-hole.gif"/></p>
+</section>
+<section id="vec" class="slide level2">
+<h2>Vec</h2>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// https://doc.rust-lang.org/src/alloc/vec/mod.rs.html#396</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> <span class="dt">Vec</span><span class="op">&lt;</span>T<span class="op">,</span> A<span class="op">:</span> Allocator <span class="op">=</span> Global<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    buf<span class="op">:</span> RawVec<span class="op">&lt;</span>T<span class="op">,</span> A<span class="op">&gt;,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    len<span class="op">:</span> <span class="dt">usize</span><span class="op">,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</section>
+<section id="rawvec" class="slide level2">
+<h2>RawVec</h2>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// https://doc.rust-lang.org/src/alloc/raw_vec.rs.html#51</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> RawVec<span class="op">&lt;</span>T<span class="op">,</span> A<span class="op">:</span> Allocator <span class="op">=</span> Global<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    ptr<span class="op">:</span> Unique<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    cap<span class="op">:</span> <span class="dt">usize</span><span class="op">,</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    alloc<span class="op">:</span> A<span class="op">,</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</section>
+<section id="unique" class="slide level2">
+<h2>Unique</h2>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// https://doc.rust-lang.org/src/core/ptr/unique.rs.html#37</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> Unique<span class="op">&lt;</span>T<span class="op">:</span> <span class="op">?</span><span class="bu">Sized</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    pointer<span class="op">:</span> NonNull<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// </span><span class="al">NOTE</span><span class="co">: this marker is necessary for dropck to</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// understand that we logically own a `T`.</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    _marker<span class="op">:</span> PhantomData<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</section>
+<section id="nonnull" class="slide level2">
+<h2>NonNull</h2>
+<p>Behold! The magic sauce!</p>
+<div class="fragment">
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// https://doc.rust-lang.org/src/core/ptr/non_null.rs.html#67</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>repr<span class="at">(</span>transparent<span class="at">)]</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>rustc_layout_scalar_valid_range_start<span class="at">(</span><span class="dv">1</span><span class="at">)]</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>rustc_nonnull_optimization_guaranteed<span class="at">]</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> NonNull<span class="op">&lt;</span>T<span class="op">:</span> <span class="op">?</span><span class="bu">Sized</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    pointer<span class="op">:</span> <span class="op">*</span><span class="kw">const</span> T<span class="op">,</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
+</section></section>
+<section>
+<section id="zero-sized-types" class="title-slide slide level1">
+<h1>Zero Sized Types</h1>
+
+</section>
+<section id="types-have-size" class="slide level2">
+<h2>Types have size</h2>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::mem::</span>size_of<span class="op">;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span><span class="dt">bool</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span><span class="dt">i32</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">4</span><span class="op">;</span></span></code></pre></div>
+</section>
+<section id="o-tamanho-de-uma-struct-é-a-soma-dos-membros"
+class="slide level2">
+<h2>O tamanho de uma struct é a soma dos membros</h2>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Foo <span class="op">{</span> a<span class="op">:</span> <span class="dt">i32</span><span class="op">,</span> b<span class="op">:</span> <span class="dt">i32</span> <span class="op">}</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span>Foo<span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">8</span><span class="op">;</span></span></code></pre></div>
+</section>
+<section id="e-o-tamanho-de-uma-struct-com-0-membros"
+class="slide level2">
+<h2>E o tamanho de uma struct com 0 membros?</h2>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Zero<span class="op">;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span>Zero<span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">0</span><span class="op">;</span></span></code></pre></div>
 </section></section>
     </div>
   </div>

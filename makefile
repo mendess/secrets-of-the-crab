@@ -6,7 +6,7 @@ compile:
 	--slide-level=2 \
 	presentation.md \
 	-V revealjs-url=./reveal.js \
-	-V theme=white \
+	-V theme=black \
 	--highlight-style ./gruvbox.theme
 
 auto:
