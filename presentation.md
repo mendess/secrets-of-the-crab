@@ -64,6 +64,8 @@ size_of::<MaybeNumbers>() == 24;
 
 ## Niche optimization.
 
+<div class="r-stack">
+<div class="fragment">
 Na verdade não precisamos de uma tag porque há estados inválidos para um `Vec`!
 
 <div class="fragment">
@@ -72,21 +74,22 @@ Na verdade não precisamos de uma tag porque há estados inválidos para um `Vec
 
 <div class="fragment">
 ```
-+------------------------+
-| METER AQUI UM NULL     |
-|                        |
-| METER AQUI UM VEC      |
-+------------------------+
-  ^         ^
-   \         \ Espaço suficiente para a
-    \          maior variante do enum
-     \
-      Tag que pode ser 0 para Just ou 1 para Nothing
++-----------------------+
+| Nothing:              |  Para Nothing basta inicilizar os
+|   0   |   x   |   x   |  primeiros 8 bytes a 0.
+|                       |
+| Just:                 |  Para Just basta o `ptr` não ser 0
+|   ptr |  len  |  cap  |  e já se sabe que não é Nothing.
++-----------------------+
+
+< ----- 24 bytes ------ >
 ```
 
-Mas será que `Vec` é especial?
+<p class="fragment">Mas será que `Vec` é especial?</p>
 </div>
-<img class="fragment" src="./assets/bye-alice-rabbit-hole.gif"/>
+</div>
+<img class="fragment" src="./assets/bye-alice-rabbit-hole.gif" style="min-height:30vh"/>
+</div>
 
 ## Vec
 

@@ -169,61 +169,73 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb4-1"><a href="
 </section>
 <section id="niche-optimization." class="slide level2">
 <h2>Niche optimization.</h2>
+<div class="r-stack">
+<div class="fragment">
 <p>Na verdade não precisamos de uma tag porque há estados inválidos para
 um <code>Vec</code>!</p>
 <div class="fragment">
 <p><strong>O pointer interior nunca pode ser null!</strong></p>
 </div>
 <div class="fragment">
-<p>Logo o compilador pode usar a localização de memoria onde o pointer
-seria no Vec para distinguir entre <code>Just</code> e
-<code>Nothing</code>.</p>
-<p>Mas será que <code>Vec</code> é especial?</p>
+<pre><code>+-----------------------+
+| Nothing:              |  Para Nothing basta inicilizar os
+|   0   |   x   |   x   |  primeiros 8 bytes a 0.
+|                       |
+| Just:                 |  Para Just basta o `ptr` não ser 0
+|   ptr |  len  |  cap  |  e já se sabe que não é Nothing.
++-----------------------+
+
+&lt; ----- 24 bytes ------ &gt;</code></pre>
+<p class="fragment">
+Mas será que <code>Vec</code> é especial?
+</p>
 </div>
-<p><img class="fragment" src="./assets/bye-alice-rabbit-hole.gif"/></p>
+</div>
+<p><img class="fragment" src="./assets/bye-alice-rabbit-hole.gif" style="min-height:30vh"/></p>
+</div>
 </section>
 <section id="vec" class="slide level2">
 <h2>Vec</h2>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// https://doc.rust-lang.org/src/alloc/vec/mod.rs.html#396</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> <span class="dt">Vec</span><span class="op">&lt;</span>T<span class="op">,</span> A<span class="op">:</span> Allocator <span class="op">=</span> Global<span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    buf<span class="op">:</span> RawVec<span class="op">&lt;</span>T<span class="op">,</span> A<span class="op">&gt;,</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    len<span class="op">:</span> <span class="dt">usize</span><span class="op">,</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// https://doc.rust-lang.org/src/alloc/vec/mod.rs.html#396</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> <span class="dt">Vec</span><span class="op">&lt;</span>T<span class="op">,</span> A<span class="op">:</span> Allocator <span class="op">=</span> Global<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    buf<span class="op">:</span> RawVec<span class="op">&lt;</span>T<span class="op">,</span> A<span class="op">&gt;,</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    len<span class="op">:</span> <span class="dt">usize</span><span class="op">,</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </section>
 <section id="rawvec" class="slide level2">
 <h2>RawVec</h2>
-<div class="sourceCode" id="cb6"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// https://doc.rust-lang.org/src/alloc/raw_vec.rs.html#51</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> RawVec<span class="op">&lt;</span>T<span class="op">,</span> A<span class="op">:</span> Allocator <span class="op">=</span> Global<span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    ptr<span class="op">:</span> Unique<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    cap<span class="op">:</span> <span class="dt">usize</span><span class="op">,</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    alloc<span class="op">:</span> A<span class="op">,</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// https://doc.rust-lang.org/src/alloc/raw_vec.rs.html#51</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> RawVec<span class="op">&lt;</span>T<span class="op">,</span> A<span class="op">:</span> Allocator <span class="op">=</span> Global<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    ptr<span class="op">:</span> Unique<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    cap<span class="op">:</span> <span class="dt">usize</span><span class="op">,</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    alloc<span class="op">:</span> A<span class="op">,</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </section>
 <section id="unique" class="slide level2">
 <h2>Unique</h2>
-<div class="sourceCode" id="cb7"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// https://doc.rust-lang.org/src/core/ptr/unique.rs.html#37</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> Unique<span class="op">&lt;</span>T<span class="op">:</span> <span class="op">?</span><span class="bu">Sized</span><span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    pointer<span class="op">:</span> NonNull<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// </span><span class="al">NOTE</span><span class="co">: this marker is necessary for dropck to</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// understand that we logically own a `T`.</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    _marker<span class="op">:</span> PhantomData<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// https://doc.rust-lang.org/src/core/ptr/unique.rs.html#37</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> Unique<span class="op">&lt;</span>T<span class="op">:</span> <span class="op">?</span><span class="bu">Sized</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    pointer<span class="op">:</span> NonNull<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// </span><span class="al">NOTE</span><span class="co">: this marker is necessary for dropck to</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// understand that we logically own a `T`.</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    _marker<span class="op">:</span> PhantomData<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </section>
 <section id="nonnull" class="slide level2">
 <h2>NonNull</h2>
 <p>Behold! The magic sauce!</p>
 <div class="fragment">
-<div class="sourceCode" id="cb8"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// https://doc.rust-lang.org/src/core/ptr/non_null.rs.html#67</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>repr<span class="at">(</span>transparent<span class="at">)]</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>rustc_layout_scalar_valid_range_start<span class="at">(</span><span class="dv">1</span><span class="at">)]</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>rustc_nonnull_optimization_guaranteed<span class="at">]</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> NonNull<span class="op">&lt;</span>T<span class="op">:</span> <span class="op">?</span><span class="bu">Sized</span><span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    pointer<span class="op">:</span> <span class="op">*</span><span class="kw">const</span> T<span class="op">,</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">// https://doc.rust-lang.org/src/core/ptr/non_null.rs.html#67</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>repr<span class="at">(</span>transparent<span class="at">)]</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>rustc_layout_scalar_valid_range_start<span class="at">(</span><span class="dv">1</span><span class="at">)]</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>rustc_nonnull_optimization_guaranteed<span class="at">]</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> NonNull<span class="op">&lt;</span>T<span class="op">:</span> <span class="op">?</span><span class="bu">Sized</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    pointer<span class="op">:</span> <span class="op">*</span><span class="kw">const</span> T<span class="op">,</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </div>
 </section></section>
 <section>
@@ -233,27 +245,28 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb8-1"><a href="
 </section>
 <section id="types-have-size" class="slide level2">
 <h2>Types have size</h2>
-<div class="sourceCode" id="cb9"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::mem::</span>size_of<span class="op">;</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span><span class="dt">bool</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span><span class="dt">i32</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">4</span><span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::mem::</span>size_of<span class="op">;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span><span class="dt">bool</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span><span class="dt">i32</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">4</span><span class="op">;</span></span></code></pre></div>
 </section>
 <section id="o-tamanho-de-uma-struct-é-a-soma-dos-membros"
 class="slide level2">
 <h2>O tamanho de uma struct é a soma dos membros</h2>
-<div class="sourceCode" id="cb10"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Foo <span class="op">{</span> a<span class="op">:</span> <span class="dt">i32</span><span class="op">,</span> b<span class="op">:</span> <span class="dt">i32</span> <span class="op">}</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span>Foo<span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">8</span><span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Foo <span class="op">{</span> a<span class="op">:</span> <span class="dt">i32</span><span class="op">,</span> b<span class="op">:</span> <span class="dt">i32</span> <span class="op">}</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span>Foo<span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">8</span><span class="op">;</span></span></code></pre></div>
 </section>
 <section id="e-o-tamanho-de-uma-struct-com-0-membros"
 class="slide level2">
 <h2>E o tamanho de uma struct com 0 membros?</h2>
-<div class="sourceCode" id="cb11"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Zero<span class="op">;</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span>Zero<span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">0</span><span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Zero<span class="op">;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span>Zero<span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">0</span><span class="op">;</span></span></code></pre></div>
+<p>https://godbolt.org/z/GnTY9WEo9</p>
 </section></section>
     </div>
   </div>
