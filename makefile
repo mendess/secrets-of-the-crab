@@ -6,9 +6,9 @@ compile:
 	--slide-level=2 \
 	presentation.md \
 	-V revealjs-url=./reveal.js \
-	-V theme=black \
-	--highlight-style ./gruvbox.theme
+	-V theme=solarized
 
 auto:
 	touch index.html
+	echo index.html | entr refresh_firefox &
 	find *md ./reveal.js/ makefile | entr make

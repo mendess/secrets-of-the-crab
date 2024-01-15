@@ -31,7 +31,7 @@
     .display.math{display: block; text-align: center; margin: 0.5rem auto;}
     /* CSS for syntax highlighting */
     pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
     pre > code.sourceCode > span:empty { height: 1.2em; }
     .sourceCode { overflow: visible; }
     code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -56,46 +56,45 @@
         -khtml-user-select: none; -moz-user-select: none;
         -ms-user-select: none; user-select: none;
         padding: 0 4px; width: 4em;
+        color: #aaaaaa;
       }
-    pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
     div.sourceCode
-      { color: #f9f5d7; background-color: #303030; }
+      {   }
     @media screen {
     pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
     }
-    code span { color: #f0dfaf; } /* Normal */
-    code span.al { color: #ffcfaf; } /* Alert */
-    code span.an { color: #7f9f7f; font-weight: bold; } /* Annotation */
-    code span.at { } /* Attribute */
-    code span.bn { color: #dca3a3; } /* BaseN */
-    code span.bu { color: #cc241d; } /* BuiltIn */
-    code span.cf { color: #fb4934; } /* ControlFlow */
-    code span.ch { color: #dca3a3; } /* Char */
-    code span.cn { color: #dca3a3; font-weight: bold; } /* Constant */
-    code span.co { color: #928374; } /* Comment */
-    code span.cv { color: #7f9f7f; font-weight: bold; } /* CommentVar */
-    code span.do { color: #7f9f7f; } /* Documentation */
-    code span.dt { color: #f2b62e; } /* DataType */
-    code span.dv { color: #dcdccc; } /* DecVal */
-    code span.er { color: #c3bf9f; } /* Error */
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
     code span.ex { } /* Extension */
-    code span.fl { color: #c0bed1; } /* Float */
-    code span.fu { color: #fe8019; } /* Function */
-    code span.im { } /* Import */
-    code span.in { color: #7f9f7f; font-weight: bold; } /* Information */
-    code span.kw { color: #fb4934; } /* Keyword */
-    code span.op { color: #f0efd0; } /* Operator */
-    code span.ot { color: #efef8f; } /* Other */
-    code span.pp { color: #ffcfaf; font-weight: bold; } /* Preprocessor */
-    code span.re { color: #ffcfaf; font-weight: bold; } /* RegionMarker */
-    code span.sc { color: #dca3a3; } /* SpecialChar */
-    code span.ss { color: #cc9393; } /* SpecialString */
-    code span.st { color: #98971a; } /* String */
-    code span.va { color: #458588; } /* Variable */
-    code span.vs { color: #cc9393; } /* VerbatimString */
-    code span.wa { color: #7f9f7f; font-weight: bold; } /* Warning */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="./reveal.js/dist/theme/black.css" id="theme">
+  <link rel="stylesheet" href="./reveal.js/dist/theme/solarized.css" id="theme">
 </head>
 <body>
   <div class="reveal">
@@ -122,10 +121,14 @@ Pagam me para escrever Rust nos meus tempos não livres
 </li>
 </ul>
 </section>
-<section id="disclaimer" class="slide level2">
-<h2><strong>Disclaimer</strong></h2>
-<p>Vai haver um bocadinho de assembly nesta talk 👀. Espero que tenham
-prestado atenção ao Proença.</p>
+<section id="disclaimers" class="slide level2">
+<h2><strong>Disclaimers</strong></h2>
+<ul>
+<li><p>Vai haver um bocadinho de assembly nesta talk 👀. Espero que
+tenham prestado atenção ao Proença.</p></li>
+<li><p>Esta talk também assume algum conhecimento de rust, se não sabem
+<strong>perguntem</strong>.</p></li>
+</ul>
 </section></section>
 <section>
 <section id="enums-and-their-niches" class="title-slide slide level1">
@@ -133,7 +136,7 @@ prestado atenção ao Proença.</p>
 
 </section>
 <section id="enums-são-sum-types" class="slide level2">
-<h2>Enums são <code>sum types</code></h2>
+<h2>Enums são “sum types”</h2>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">enum</span> MaybeNumbers <span class="op">{</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    Just(<span class="dt">Vec</span><span class="op">&lt;</span><span class="dt">i32</span><span class="op">&gt;</span>)<span class="op">,</span></span>
@@ -237,37 +240,162 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb9-1"><a href="
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    pointer<span class="op">:</span> <span class="op">*</span><span class="kw">const</span> T<span class="op">,</span></span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </div>
+</section>
+<section id="and-it-recurses" class="slide level2">
+<h2>And it recurses!</h2>
+<div class="fragment">
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">enum</span> <span class="dt">Option</span><span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="cn">Some</span>(T)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="cn">None</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="fragment">
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Foo <span class="op">{</span> i<span class="op">:</span> <span class="dt">i32</span><span class="op">,</span> bar<span class="op">:</span> Bar <span class="op">}</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Bar <span class="op">{</span> f<span class="op">:</span> <span class="dt">f32</span><span class="op">,</span> baz<span class="op">:</span> Baz <span class="op">}</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Baz <span class="op">{</span> s<span class="op">:</span> <span class="dt">String</span> <span class="op">}</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span>Foo<span class="op">&gt;</span>() <span class="op">==</span> <span class="pp">size_of::</span><span class="op">&lt;</span><span class="dt">Option</span><span class="op">&lt;</span>Foo<span class="op">&gt;&gt;</span>()</span></code></pre></div>
+</div>
+</section>
+<section id="its-zero-cost-abstraction" class="slide level2">
+<h2>It’s zero cost abstraction ™️</h2>
+<div class="fragment">
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">  Opens a file.</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">  Upon  successful  completion return a FILE pointer.</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">  Otherwise, NULL is returned.</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">*/</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="dt">FILE</span><span class="op">*</span> fopen(<span class="dt">char</span> <span class="kw">const</span><span class="op">*</span> path<span class="op">,</span> <span class="dt">char</span> <span class="kw">const</span><span class="op">*</span> mode)<span class="op">;</span></span></code></pre></div>
+</div>
+<div class="fragment">
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// Opens a file.</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">/// Upon  successful  completion return a boxed File.</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">/// Otherwise, None is returned.</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> fopen(path<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span><span class="op">,</span> mode<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span>) <span class="op">-&gt;</span> <span class="dt">Option</span><span class="op">&lt;</span><span class="dt">Box</span><span class="op">&lt;</span>File<span class="op">&gt;&gt;;</span></span></code></pre></div>
+</div>
+<div class="fragment">
+<p>Ambos os valores de retorno tem o mesmo tamanho, um pointer. E um
+NULL check em C vai gerar assembly praticamente igual ao None check em
+rust.</p>
+</div>
 </section></section>
 <section>
 <section id="zero-sized-types" class="title-slide slide level1">
 <h1>Zero Sized Types</h1>
 
 </section>
-<section id="types-have-size" class="slide level2">
-<h2>Types have size</h2>
-<div class="sourceCode" id="cb10"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::mem::</span>size_of<span class="op">;</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span><span class="dt">bool</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span><span class="dt">i32</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">4</span><span class="op">;</span></span></code></pre></div>
+<section id="o-tamanho-de-uma-struct" class="slide level2">
+<h2>O tamanho de uma struct</h2>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Foo <span class="op">{</span> a<span class="op">:</span> <span class="dt">i32</span><span class="op">,</span> b<span class="op">:</span> <span class="dt">i32</span> <span class="op">}</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span><span class="dt">i32</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">4</span><span class="op">;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span>Foo<span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">8</span><span class="op">;</span></span></code></pre></div>
 </section>
-<section id="o-tamanho-de-uma-struct-é-a-soma-dos-membros"
+<section id="e-o-tamanho-de-uma-struct-com-zero-membros"
 class="slide level2">
-<h2>O tamanho de uma struct é a soma dos membros</h2>
-<div class="sourceCode" id="cb11"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Foo <span class="op">{</span> a<span class="op">:</span> <span class="dt">i32</span><span class="op">,</span> b<span class="op">:</span> <span class="dt">i32</span> <span class="op">}</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span>Foo<span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">8</span><span class="op">;</span></span></code></pre></div>
+<h2>E o tamanho de uma struct com zero membros?</h2>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Zero<span class="op">;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span>Zero<span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">0</span><span class="op">;</span></span></code></pre></div>
 </section>
-<section id="e-o-tamanho-de-uma-struct-com-0-membros"
-class="slide level2">
-<h2>E o tamanho de uma struct com 0 membros?</h2>
-<div class="sourceCode" id="cb12"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Zero<span class="op">;</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span>Zero<span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">0</span><span class="op">;</span></span></code></pre></div>
-<p>https://godbolt.org/z/GnTY9WEo9</p>
+<section id="some-assembly" class="slide level2">
+<h2>Some assembly</h2>
+<p class="fragment">
+ASM necessário para instanciar um tipo destes:
+</p>
+<div class="fragment">
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode asm"><code class="sourceCode fasm"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a> </span></code></pre></div>
+</div>
+<p class="fragment">
+ASM necessário para o passar a uma função:
+</p>
+<div class="fragment">
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode asm"><code class="sourceCode fasm"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a> </span></code></pre></div>
+</div>
+<p class="fragment">
+ASM necessário para fazer uma copia:
+</p>
+<div class="fragment">
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode asm"><code class="sourceCode fasm"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a> </span></code></pre></div>
+</div>
+</section>
+<section id="muito-lindo-mas-para-que-serve" class="slide level2">
+<h2>Muito lindo, mas para que serve?</h2>
+<div class="fragment">
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Logger <span class="op">{</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> log(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> s<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span>)<span class="op">;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> handle_request<span class="op">&lt;</span>L<span class="op">:</span> Logger<span class="op">&gt;</span>(logger<span class="op">:</span> L<span class="op">,</span> req<span class="op">:</span> Request) <span class="op">{</span> <span class="op">...</span> <span class="op">}</span></span></code></pre></div>
+</div>
+<div class="r-stack">
+<div class="fragment fade-in-then-out">
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> FileLogger(File)<span class="op">;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> Logger <span class="cf">for</span> StdoutLogger <span class="op">{</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> log(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> s<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span>) <span class="op">{</span> <span class="kw">self</span><span class="op">.</span><span class="dv">0</span><span class="op">.</span>write(s) <span class="op">}</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="co">// compiler generates</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> handle_request_FileLogger(logger<span class="op">:</span> FileLogger<span class="op">,</span> req<span class="op">:</span> Request) <span class="op">{</span> <span class="op">...</span> <span class="op">}</span>          </span></code></pre></div>
+</div>
+<div class="fragment">
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> StdoutLogger<span class="op">;</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> Logger <span class="cf">for</span> StdoutLogger <span class="op">{</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> log(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> s<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span>) <span class="op">{</span> <span class="pp">println!</span>(<span class="st">&quot;{s}&quot;</span>) <span class="op">}</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="co">// compiler generates</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> handle_request_StdoutLogger(req<span class="op">:</span> Request) <span class="op">{</span> <span class="op">...</span> <span class="op">}</span>                            </span></code></pre></div>
+</div>
+</div>
+</section>
+<section id="alocações-dinâmicas-de-zsts" class="slide level2">
+<h2>Alocações dinâmicas de ZST’s</h2>
+<table>
+<tr>
+<td>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="dt">Box</span><span class="pp">::</span>new(Zero)</span></code></pre></div>
+</td>
+<td>
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode asm"><code class="sourceCode fasm"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="bu">mov</span>  <span class="kw">eax</span><span class="op">,</span> <span class="dv">1</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="cf">ret</span></span></code></pre></div>
+</td>
+</tr>
+<tr>
+<td>
+<div class="sourceCode" id="cb24"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="pp">vec!</span>[Zero<span class="op">;</span> <span class="dt">u32</span><span class="pp">::</span><span class="cn">MAX</span> <span class="kw">as</span> _]   </span></code></pre></div>
+</td>
+<td>
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode asm"><code class="sourceCode fasm"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="bu">mov</span>  <span class="kw">rax</span><span class="op">,</span> <span class="kw">rdi</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="bu">mov</span>  <span class="dt">qword</span> <span class="dt">ptr</span> <span class="op">[</span><span class="kw">rdi</span><span class="op">],</span> <span class="dv">1</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="bu">mov</span>  <span class="dt">qword</span> <span class="dt">ptr</span> <span class="op">[</span><span class="kw">rdi</span> <span class="op">+</span> <span class="dv">8</span><span class="op">],</span> <span class="dv">0</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="bu">mov</span>  <span class="kw">rcx</span><span class="op">,</span> <span class="dv">4294967295</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="bu">mov</span>  <span class="dt">qword</span> <span class="dt">ptr</span> <span class="op">[</span><span class="kw">rdi</span> <span class="op">+</span> <span class="dv">16</span><span class="op">],</span> <span class="kw">rcx</span>    </span></code></pre></div>
+</td>
+</tr>
+</table>
+<p><a href="https://godbolt.org/z/z9Gr5GWhs">godbolt</a></p>
 </section></section>
+<section id="free-simd" class="title-slide slide level1">
+<h1>Free Simd</h1>
+<p><img data-src="./assets/free-real-estate.gif" /></p>
+</section>
     </div>
   </div>
 
