@@ -164,28 +164,57 @@ size_of::<Foo>() == size_of::<Option<Foo>>()
 
 ## It's zero cost abstraction ™️
 
-<div class="fragment">
+<table>
+<tr>
+<td>
 ```rust
-/**
-  Opens a file.
-  Upon  successful  completion return a FILE pointer.
-  Otherwise, NULL is returned.
-*/
-FILE* fopen(char const* path, char const* mode);
+pub fn foo(cond: bool)
+  -> Option<&'static str> {
+    if cond {
+        Some("yay")
+    } else {
+        None
+    }
+}
 ```
-</div>
-<div class="fragment">
-```rust
-/// Opens a file.
-/// Upon  successful  completion return a boxed File.
-/// Otherwise, None is returned.
-fn fopen(path: &str, mode: &str) -> Option<Box<File>>;
+</td>
+<td>
+```asm
+lea     rcx, [rip + .L__unnamed_1]    
+xor     eax, eax
+test    edi, edi
+cmovne  rax, rcx
+mov     edx, 3
+ret
+.L__unnamed_1:
+.ascii  "yay"
 ```
-</div>
-<div class="fragment">
-Ambos os valores de retorno tem o mesmo tamanho, um pointer. E um NULL check em
-C vai gerar assembly praticamente igual ao None check em rust.
-</div>
+</td>
+</tr>
+<tr>
+<td>
+```c
+#include <stdbool.h>
+#include <stdlib.h>
+
+char const* foo(bool cond) {
+    return cond ? "yay" : NULL;    
+}
+```
+</td>
+<td>
+```asm
+lea     rcx, [rip + .L.str]
+xor     eax, eax
+test    edi, edi
+cmovne  rax, rcx
+ret
+.L.str:
+.asciz  "yay"
+```
+</td>
+</tr>
+</table>
 
 
 # Zero Sized Types
@@ -301,8 +330,128 @@ mov  qword ptr [rdi + 16], rcx    
 
 [godbolt](https://godbolt.org/z/z9Gr5GWhs)
 
+## dyn
 
-# Free Simd
+```rust
+fn default_logger() -> Box<dyn Logger> {
+    Box::new(StdoutLogger)
+}
+```
+<div class="fragment">
+```asm
+default_logger:
+lea     rdx, [rip + .L__unnamed_2]
+mov     eax, 1
+ret
 
-![](./assets/free-real-estate.gif)
+.L__unnamed_2:
+.quad   core::ptr::drop_in_place<example::StdoutLogger>
+.asciz  "\000\000\000\000\000\000\000\000\001\000\000\000\000\000\000"
+.quad   <example::StdoutLogger as example::Logger>::log
+```
+</div>
 
+# Free Vectorization
+
+![](./assets/free-simd-estate.gif)
+
+## Iterators
+
+<div class="fragment">
+![](./assets/java-stream.png)
+</div>
+<div class="fragment">
+![](./assets/csharp-linq.png)
+</div>
+
+<div class="fragment">
+```rust
+trait Iterator {
+    type Item;
+    fn next(&mut self) -> Option<Self::Item>;
+}
+```
+</div>
+
+## São parecidos
+```java
+final var sum = numbers
+    .stream()
+    .filter(i -> i % 2 == 0)
+    .mapToInt(i -> i * 2)
+    .sum();
+```
+```rust
+let sum = numbers
+    .iter()
+    .filter(|i| i % 2 == 0)
+    .map(|i| i * 2)
+    .sum();
+```
+
+## Mesmo a API e similar
+```java
+<R> Stream<R> map(Function<? super T, ? extends R> mapper);
+
+Stream<T>     filter(Predicate<? super T> predicate);
+```
+```rust
+fn map<B, F>(self, f: F) -> Map<Self, F>
+where
+    F: FnMut(Self::Item) -> B;
+
+
+fn filter<P>(self, predicate: P) -> Filter<Self, P>
+where
+    P: FnMut(&Self::Item) -> bool;
+```
+
+## Type Information
+
+```rust
+fn filter<P>(self, predicate: P) -> Filter<Self, P>
+where
+    P: FnMut(&Self::Item) -> bool;
+```
+<div class="fragment">
+```rust
+let iter = numbers.iter().filter(|&i| i % 2 == 0).map(|i| i * 2);
+iter: Map<
+    Filter<
+        std::slice::Iter<'_, i32>,
+        {closure@/meetup.rs:3:39: 3:42},
+    >,
+    {closure@/meetup.rs:3:59: 3:62},
+>
+```
+</div>
+
+## Type Information
+
+```rust
+pub struct Map<I, F> {              pub struct Filter<I, P> {
+    iter: I,                            iter: I,
+    f: F,                               f: F,
+}                                   }
+```
+```rust
+impl<I, F> Iterator for Map<I, F>
+where
+    I: Iterator, F: FnMut(I::Item) -> B {
+    type Item = B;
+
+    fn next(&mut self) -> Option<B> {
+        self.iter.next().map(&mut self.f)
+    }
+}
+```
+
+## Aggressive Inlining
+
+<a target="_blank" href="https://godbolt.org/z/o47n5138o">manual for vs iterator simd</a>
+
+<a target="_blank" href="https://godbolt.org/z/9W5fG7vnq">manual for vs iterator simd complex</a>
+
+#
+
+E são estes os secretos de ~~porco~~ de caranguejo 🦀
