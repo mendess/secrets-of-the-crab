@@ -38,8 +38,9 @@ fn main() {
 ## Memory layout
 
 ```
-size_of::<Vec<i32>>() == 24;
+size_of::<Vec<i32>>() == 24; // Vec = { ptr, len, cap }
 ```
+<div class="fragment">
 ```
 +--------+------------------------+
 |  tag   | Just / Nothing         |
@@ -54,6 +55,7 @@ size_of::<Vec<i32>>() == 24;
 ```
 
 Total: 32 bytes
+</div>
 
 <div class="fragment">
 ```rust
@@ -120,7 +122,7 @@ pub(crate) struct RawVec<T, A: Allocator = Global> {
 // https://doc.rust-lang.org/src/core/ptr/unique.rs.html#37
 pub struct Unique<T: ?Sized> {
     pointer: NonNull<T>,
-    // NOTE: this marker is necessary for dropck to
+    // this marker is necessary for dropck to
     // understand that we logically own a `T`.
     _marker: PhantomData<T>,
 }
@@ -238,19 +240,19 @@ size_of::<Zero>() == 0;
 
 ## Some assembly
 
-<p class="fragment">ASM necessário para instanciar um tipo destes:</p>
+<p class="fragment">Assembly necessário para instanciar um tipo destes:</p>
 <div class="fragment">
 ```asm
  
 ```
 </div>
-<p class="fragment">ASM necessário para o passar a uma função:</p>
+<p class="fragment">Assembly necessário para o passar a uma função:</p>
 <div class="fragment">
 ```asm
  
 ```
 </div>
-<p class="fragment">ASM necessário para fazer uma copia:</p>
+<p class="fragment">Assembly necessário para fazer uma copia:</p>
 <div class="fragment">
 ```asm
  
@@ -273,7 +275,7 @@ fn handle_request<L: Logger>(logger: L, req: Request) { ... }
 <div class="fragment fade-in-then-out">
 ```rust
 struct FileLogger(File);
-impl Logger for StdoutLogger {
+impl Logger for FileLogger {
     fn log(&self, s: &str) { self.0.write(s) }
 }
 
@@ -297,7 +299,7 @@ fn handle_request_StdoutLogger(req: Request) { ... }              
 ## Alocações dinâmicas de ZST's
 
 <table>
-<tr>
+<tr class="fragment">
 <td>
 ```rust
 Box::new(Zero)
@@ -310,7 +312,7 @@ ret
 ```
 </td>
 </tr>
-<tr>
+<tr class="fragment">
 <td>
 ```rust
 vec![Zero; u32::MAX as _]   
@@ -328,15 +330,25 @@ mov  qword ptr [rdi + 16], rcx    
 </tr>
 </table>
 
-[godbolt](https://godbolt.org/z/z9Gr5GWhs)
+<div class="notes">
+<a target="_blank" href="https://godbolt.org/z/z9Gr5GWhs">proof</a>
+</div>
 
 ## dyn
 
+```rust
+struct LoggerManagerFactoryService {
+    loggers: Vec<dyn Logger>,
+}
+```
+
+<div class="fragment">
 ```rust
 fn default_logger() -> Box<dyn Logger> {
     Box::new(StdoutLogger)
 }
 ```
+</div>
 <div class="fragment">
 ```asm
 default_logger:
@@ -405,9 +417,15 @@ fn filter<P>(self, predicate: P) -> Filter<Self, P>
 where
     P: FnMut(&Self::Item) -> bool;
 ```
+<div class="fragment">
+Mas há uma pequena diferença.
+</div>
 
 ## Type Information
 
+```java
+Stream<T> filter(Predicate<? super T> predicate);
+```
 ```rust
 fn filter<P>(self, predicate: P) -> Filter<Self, P>
 where
@@ -416,6 +434,10 @@ where
 <div class="fragment">
 ```rust
 let iter = numbers.iter().filter(|&i| i % 2 == 0).map(|i| i * 2);
+```
+</div>
+<div class="fragment">
+```rust
 iter: Map<
     Filter<
         std::slice::Iter<'_, i32>,

@@ -150,7 +150,8 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="
 </section>
 <section id="memory-layout" class="slide level2">
 <h2>Memory layout</h2>
-<pre><code>size_of::&lt;Vec&lt;i32&gt;&gt;() == 24;</code></pre>
+<pre><code>size_of::&lt;Vec&lt;i32&gt;&gt;() == 24; // Vec = { ptr, len, cap }</code></pre>
+<div class="fragment">
 <pre><code>+--------+------------------------+
 |  tag   | Just / Nothing         |
 |        |                        |
@@ -162,6 +163,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="
      \
       Tag que pode ser 0 para Just ou 1 para Nothing</code></pre>
 <p>Total: 32 bytes</p>
+</div>
 <div class="fragment">
 <div class="sourceCode" id="cb4"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">size_of::</span><span class="op">&lt;</span>MaybeNumbers<span class="op">&gt;</span>() <span class="op">==</span> <span class="dv">24</span><span class="op">;</span></span></code></pre></div>
@@ -222,7 +224,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb7-1"><a href="
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// https://doc.rust-lang.org/src/core/ptr/unique.rs.html#37</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> Unique<span class="op">&lt;</span>T<span class="op">:</span> <span class="op">?</span><span class="bu">Sized</span><span class="op">&gt;</span> <span class="op">{</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    pointer<span class="op">:</span> NonNull<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// </span><span class="al">NOTE</span><span class="co">: this marker is necessary for dropck to</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// this marker is necessary for dropck to</span></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// understand that we logically own a `T`.</span></span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    _marker<span class="op">:</span> PhantomData<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
@@ -332,21 +334,21 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb17-1"><a href=
 <section id="some-assembly" class="slide level2">
 <h2>Some assembly</h2>
 <p class="fragment">
-ASM necessário para instanciar um tipo destes:
+Assembly necessário para instanciar um tipo destes:
 </p>
 <div class="fragment">
 <div class="sourceCode" id="cb18"><pre
 class="sourceCode asm"><code class="sourceCode fasm"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a> </span></code></pre></div>
 </div>
 <p class="fragment">
-ASM necessário para o passar a uma função:
+Assembly necessário para o passar a uma função:
 </p>
 <div class="fragment">
 <div class="sourceCode" id="cb19"><pre
 class="sourceCode asm"><code class="sourceCode fasm"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a> </span></code></pre></div>
 </div>
 <p class="fragment">
-ASM necessário para fazer uma copia:
+Assembly necessário para fazer uma copia:
 </p>
 <div class="fragment">
 <div class="sourceCode" id="cb20"><pre
@@ -367,7 +369,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb21-1"><a href=
 <div class="fragment fade-in-then-out">
 <div class="sourceCode" id="cb22"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> FileLogger(File)<span class="op">;</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> Logger <span class="cf">for</span> StdoutLogger <span class="op">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> Logger <span class="cf">for</span> FileLogger <span class="op">{</span></span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> log(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> s<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span>) <span class="op">{</span> <span class="kw">self</span><span class="op">.</span><span class="dv">0</span><span class="op">.</span>write(s) <span class="op">}</span></span>
 <span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
@@ -389,7 +391,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb23-1"><a href=
 <section id="alocações-dinâmicas-de-zsts" class="slide level2">
 <h2>Alocações dinâmicas de ZST’s</h2>
 <table>
-<tr>
+<tr class="fragment">
 <td>
 <div class="sourceCode" id="cb24"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="dt">Box</span><span class="pp">::</span>new(Zero)</span></code></pre></div>
@@ -400,7 +402,7 @@ class="sourceCode asm"><code class="sourceCode fasm"><span id="cb25-1"><a href="
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="cf">ret</span></span></code></pre></div>
 </td>
 </tr>
-<tr>
+<tr class="fragment">
 <td>
 <div class="sourceCode" id="cb26"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="pp">vec!</span>[Zero<span class="op">;</span> <span class="dt">u32</span><span class="pp">::</span><span class="cn">MAX</span> <span class="kw">as</span> _]   </span></code></pre></div>
@@ -415,25 +417,33 @@ class="sourceCode asm"><code class="sourceCode fasm"><span id="cb27-1"><a href="
 </td>
 </tr>
 </table>
-<p><a href="https://godbolt.org/z/z9Gr5GWhs">godbolt</a></p>
+<aside class="notes">
+<p><a target="_blank" href="https://godbolt.org/z/z9Gr5GWhs">proof</a></p>
+</aside>
 </section>
 <section id="dyn" class="slide level2">
 <h2>dyn</h2>
 <div class="sourceCode" id="cb28"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> default_logger() <span class="op">-&gt;</span> <span class="dt">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> Logger<span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Box</span><span class="pp">::</span>new(StdoutLogger)</span>
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> LoggerManagerFactoryService <span class="op">{</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    loggers<span class="op">:</span> <span class="dt">Vec</span><span class="op">&lt;</span><span class="kw">dyn</span> Logger<span class="op">&gt;,</span></span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <div class="fragment">
 <div class="sourceCode" id="cb29"><pre
-class="sourceCode asm"><code class="sourceCode fasm"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">default_logger:</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="bu">lea</span>     <span class="kw">rdx</span><span class="op">,</span> <span class="op">[</span>rip <span class="op">+</span> <span class="op">.</span>L__unnamed_2<span class="op">]</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="bu">mov</span>     <span class="kw">eax</span><span class="op">,</span> <span class="dv">1</span></span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="cf">ret</span></span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="fu">.L__unnamed_2:</span></span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>.quad   core<span class="op">::</span><span class="dt">ptr</span><span class="op">::</span>drop_in_place<span class="op">&lt;</span>example<span class="op">::</span>StdoutLogger<span class="op">&gt;</span></span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>.asciz  <span class="st">&quot;\000\000\000\000\000\000\000\000\001\000\000\000\000\000\000&quot;</span></span>
-<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>.quad   <span class="op">&lt;</span>example<span class="op">::</span>StdoutLogger as example<span class="op">::</span>Logger<span class="op">&gt;::</span>log</span></code></pre></div>
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> default_logger() <span class="op">-&gt;</span> <span class="dt">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> Logger<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Box</span><span class="pp">::</span>new(StdoutLogger)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="fragment">
+<div class="sourceCode" id="cb30"><pre
+class="sourceCode asm"><code class="sourceCode fasm"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">default_logger:</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="bu">lea</span>     <span class="kw">rdx</span><span class="op">,</span> <span class="op">[</span>rip <span class="op">+</span> <span class="op">.</span>L__unnamed_2<span class="op">]</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="bu">mov</span>     <span class="kw">eax</span><span class="op">,</span> <span class="dv">1</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="cf">ret</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="fu">.L__unnamed_2:</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>.quad   core<span class="op">::</span><span class="dt">ptr</span><span class="op">::</span>drop_in_place<span class="op">&lt;</span>example<span class="op">::</span>StdoutLogger<span class="op">&gt;</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>.asciz  <span class="st">&quot;\000\000\000\000\000\000\000\000\001\000\000\000\000\000\000&quot;</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>.quad   <span class="op">&lt;</span>example<span class="op">::</span>StdoutLogger as example<span class="op">::</span>Logger<span class="op">&gt;::</span>log</span></code></pre></div>
 </div>
 </section></section>
 <section>
@@ -450,79 +460,87 @@ class="sourceCode asm"><code class="sourceCode fasm"><span id="cb29-1"><a href="
 <p><img data-src="./assets/csharp-linq.png" /></p>
 </div>
 <div class="fragment">
-<div class="sourceCode" id="cb30"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">trait</span> <span class="bu">Iterator</span> <span class="op">{</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> Item<span class="op">;</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> next(<span class="op">&amp;</span><span class="kw">mut</span> <span class="kw">self</span>) <span class="op">-&gt;</span> <span class="dt">Option</span><span class="op">&lt;</span><span class="dt">Self</span><span class="pp">::</span>Item<span class="op">&gt;;</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">trait</span> <span class="bu">Iterator</span> <span class="op">{</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> Item<span class="op">;</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> next(<span class="op">&amp;</span><span class="kw">mut</span> <span class="kw">self</span>) <span class="op">-&gt;</span> <span class="dt">Option</span><span class="op">&lt;</span><span class="dt">Self</span><span class="pp">::</span>Item<span class="op">&gt;;</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </div>
 </section>
 <section id="são-parecidos" class="slide level2">
 <h2>São parecidos</h2>
-<div class="sourceCode" id="cb31"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="dt">final</span> <span class="dt">var</span> sum <span class="op">=</span> numbers</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">stream</span><span class="op">()</span></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">filter</span><span class="op">(</span>i <span class="op">-&gt;</span> i <span class="op">%</span> <span class="dv">2</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">mapToInt</span><span class="op">(</span>i <span class="op">-&gt;</span> i <span class="op">*</span> <span class="dv">2</span><span class="op">)</span></span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">sum</span><span class="op">();</span></span></code></pre></div>
 <div class="sourceCode" id="cb32"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> sum <span class="op">=</span> numbers</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>iter()</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>filter(<span class="op">|</span>i<span class="op">|</span> i <span class="op">%</span> <span class="dv">2</span> <span class="op">==</span> <span class="dv">0</span>)</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>map(<span class="op">|</span>i<span class="op">|</span> i <span class="op">*</span> <span class="dv">2</span>)</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>sum()<span class="op">;</span></span></code></pre></div>
+class="sourceCode java"><code class="sourceCode java"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="dt">final</span> <span class="dt">var</span> sum <span class="op">=</span> numbers</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">stream</span><span class="op">()</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">filter</span><span class="op">(</span>i <span class="op">-&gt;</span> i <span class="op">%</span> <span class="dv">2</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">mapToInt</span><span class="op">(</span>i <span class="op">-&gt;</span> i <span class="op">*</span> <span class="dv">2</span><span class="op">)</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">sum</span><span class="op">();</span></span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> sum <span class="op">=</span> numbers</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>iter()</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>filter(<span class="op">|</span>i<span class="op">|</span> i <span class="op">%</span> <span class="dv">2</span> <span class="op">==</span> <span class="dv">0</span>)</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>map(<span class="op">|</span>i<span class="op">|</span> i <span class="op">*</span> <span class="dv">2</span>)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>sum()<span class="op">;</span></span></code></pre></div>
 </section>
 <section id="mesmo-a-api-e-similar" class="slide level2">
 <h2>Mesmo a API e similar</h2>
-<div class="sourceCode" id="cb33"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>R<span class="op">&gt;</span> Stream<span class="op">&lt;</span>R<span class="op">&gt;</span> <span class="fu">map</span><span class="op">(</span>Function<span class="op">&lt;?</span> <span class="kw">super</span> T<span class="op">,</span> <span class="op">?</span> <span class="kw">extends</span> R<span class="op">&gt;</span> mapper<span class="op">);</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>Stream<span class="op">&lt;</span>T<span class="op">&gt;</span>     <span class="fu">filter</span><span class="op">(</span><span class="bu">Predicate</span><span class="op">&lt;?</span> <span class="kw">super</span> T<span class="op">&gt;</span> predicate<span class="op">);</span></span></code></pre></div>
 <div class="sourceCode" id="cb34"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> map<span class="op">&lt;</span>B<span class="op">,</span> F<span class="op">&gt;</span>(<span class="kw">self</span><span class="op">,</span> f<span class="op">:</span> F) <span class="op">-&gt;</span> Map<span class="op">&lt;</span><span class="dt">Self</span><span class="op">,</span> F<span class="op">&gt;</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    F<span class="op">:</span> <span class="bu">FnMut</span>(<span class="dt">Self</span><span class="pp">::</span>Item) <span class="op">-&gt;</span> B<span class="op">;</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> filter<span class="op">&lt;</span>P<span class="op">&gt;</span>(<span class="kw">self</span><span class="op">,</span> predicate<span class="op">:</span> P) <span class="op">-&gt;</span> Filter<span class="op">&lt;</span><span class="dt">Self</span><span class="op">,</span> P<span class="op">&gt;</span></span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>    P<span class="op">:</span> <span class="bu">FnMut</span>(<span class="op">&amp;</span><span class="dt">Self</span><span class="pp">::</span>Item) <span class="op">-&gt;</span> <span class="dt">bool</span><span class="op">;</span></span></code></pre></div>
+class="sourceCode java"><code class="sourceCode java"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>R<span class="op">&gt;</span> Stream<span class="op">&lt;</span>R<span class="op">&gt;</span> <span class="fu">map</span><span class="op">(</span>Function<span class="op">&lt;?</span> <span class="kw">super</span> T<span class="op">,</span> <span class="op">?</span> <span class="kw">extends</span> R<span class="op">&gt;</span> mapper<span class="op">);</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>Stream<span class="op">&lt;</span>T<span class="op">&gt;</span>     <span class="fu">filter</span><span class="op">(</span><span class="bu">Predicate</span><span class="op">&lt;?</span> <span class="kw">super</span> T<span class="op">&gt;</span> predicate<span class="op">);</span></span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> map<span class="op">&lt;</span>B<span class="op">,</span> F<span class="op">&gt;</span>(<span class="kw">self</span><span class="op">,</span> f<span class="op">:</span> F) <span class="op">-&gt;</span> Map<span class="op">&lt;</span><span class="dt">Self</span><span class="op">,</span> F<span class="op">&gt;</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>    F<span class="op">:</span> <span class="bu">FnMut</span>(<span class="dt">Self</span><span class="pp">::</span>Item) <span class="op">-&gt;</span> B<span class="op">;</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> filter<span class="op">&lt;</span>P<span class="op">&gt;</span>(<span class="kw">self</span><span class="op">,</span> predicate<span class="op">:</span> P) <span class="op">-&gt;</span> Filter<span class="op">&lt;</span><span class="dt">Self</span><span class="op">,</span> P<span class="op">&gt;</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>    P<span class="op">:</span> <span class="bu">FnMut</span>(<span class="op">&amp;</span><span class="dt">Self</span><span class="pp">::</span>Item) <span class="op">-&gt;</span> <span class="dt">bool</span><span class="op">;</span></span></code></pre></div>
+<div class="fragment">
+<p>Mas há uma pequena diferença.</p>
+</div>
 </section>
 <section id="type-information" class="slide level2">
 <h2>Type Information</h2>
-<div class="sourceCode" id="cb35"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> filter<span class="op">&lt;</span>P<span class="op">&gt;</span>(<span class="kw">self</span><span class="op">,</span> predicate<span class="op">:</span> P) <span class="op">-&gt;</span> Filter<span class="op">&lt;</span><span class="dt">Self</span><span class="op">,</span> P<span class="op">&gt;</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>    P<span class="op">:</span> <span class="bu">FnMut</span>(<span class="op">&amp;</span><span class="dt">Self</span><span class="pp">::</span>Item) <span class="op">-&gt;</span> <span class="dt">bool</span><span class="op">;</span></span></code></pre></div>
-<div class="fragment">
 <div class="sourceCode" id="cb36"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> iter <span class="op">=</span> numbers<span class="op">.</span>iter()<span class="op">.</span>filter(<span class="op">|&amp;</span>i<span class="op">|</span> i <span class="op">%</span> <span class="dv">2</span> <span class="op">==</span> <span class="dv">0</span>)<span class="op">.</span>map(<span class="op">|</span>i<span class="op">|</span> i <span class="op">*</span> <span class="dv">2</span>)<span class="op">;</span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>iter<span class="op">:</span> Map<span class="op">&lt;</span></span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    Filter<span class="op">&lt;</span></span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>        <span class="pp">std::slice::</span>Iter<span class="op">&lt;</span><span class="ot">&#39;_</span><span class="op">,</span> <span class="dt">i32</span><span class="op">&gt;,</span></span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span>closure<span class="op">@/</span>meetup<span class="op">.</span>rs<span class="op">:</span><span class="dv">3</span><span class="op">:</span><span class="dv">39</span><span class="op">:</span> <span class="dv">3</span><span class="op">:</span><span class="dv">42</span><span class="op">},</span></span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">&gt;,</span></span>
-<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span>closure<span class="op">@/</span>meetup<span class="op">.</span>rs<span class="op">:</span><span class="dv">3</span><span class="op">:</span><span class="dv">59</span><span class="op">:</span> <span class="dv">3</span><span class="op">:</span><span class="dv">62</span><span class="op">},</span></span>
-<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span></span></code></pre></div>
+class="sourceCode java"><code class="sourceCode java"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>Stream<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="fu">filter</span><span class="op">(</span><span class="bu">Predicate</span><span class="op">&lt;?</span> <span class="kw">super</span> T<span class="op">&gt;</span> predicate<span class="op">);</span></span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> filter<span class="op">&lt;</span>P<span class="op">&gt;</span>(<span class="kw">self</span><span class="op">,</span> predicate<span class="op">:</span> P) <span class="op">-&gt;</span> Filter<span class="op">&lt;</span><span class="dt">Self</span><span class="op">,</span> P<span class="op">&gt;</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>    P<span class="op">:</span> <span class="bu">FnMut</span>(<span class="op">&amp;</span><span class="dt">Self</span><span class="pp">::</span>Item) <span class="op">-&gt;</span> <span class="dt">bool</span><span class="op">;</span></span></code></pre></div>
+<div class="fragment">
+<div class="sourceCode" id="cb38"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> iter <span class="op">=</span> numbers<span class="op">.</span>iter()<span class="op">.</span>filter(<span class="op">|&amp;</span>i<span class="op">|</span> i <span class="op">%</span> <span class="dv">2</span> <span class="op">==</span> <span class="dv">0</span>)<span class="op">.</span>map(<span class="op">|</span>i<span class="op">|</span> i <span class="op">*</span> <span class="dv">2</span>)<span class="op">;</span></span></code></pre></div>
+</div>
+<div class="fragment">
+<div class="sourceCode" id="cb39"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>iter<span class="op">:</span> Map<span class="op">&lt;</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>    Filter<span class="op">&lt;</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>        <span class="pp">std::slice::</span>Iter<span class="op">&lt;</span><span class="ot">&#39;_</span><span class="op">,</span> <span class="dt">i32</span><span class="op">&gt;,</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span>closure<span class="op">@/</span>meetup<span class="op">.</span>rs<span class="op">:</span><span class="dv">3</span><span class="op">:</span><span class="dv">39</span><span class="op">:</span> <span class="dv">3</span><span class="op">:</span><span class="dv">42</span><span class="op">},</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">&gt;,</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span>closure<span class="op">@/</span>meetup<span class="op">.</span>rs<span class="op">:</span><span class="dv">3</span><span class="op">:</span><span class="dv">59</span><span class="op">:</span> <span class="dv">3</span><span class="op">:</span><span class="dv">62</span><span class="op">},</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span></span></code></pre></div>
 </div>
 </section>
 <section id="type-information-1" class="slide level2">
 <h2>Type Information</h2>
-<div class="sourceCode" id="cb37"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> Map<span class="op">&lt;</span>I<span class="op">,</span> F<span class="op">&gt;</span> <span class="op">{</span>              <span class="kw">pub</span> <span class="kw">struct</span> Filter<span class="op">&lt;</span>I<span class="op">,</span> P<span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>    iter<span class="op">:</span> I<span class="op">,</span>                            iter<span class="op">:</span> I<span class="op">,</span></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>    f<span class="op">:</span> F<span class="op">,</span>                               f<span class="op">:</span> F<span class="op">,</span></span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>                                   <span class="op">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb38"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span><span class="op">&lt;</span>I<span class="op">,</span> F<span class="op">&gt;</span> <span class="bu">Iterator</span> <span class="cf">for</span> Map<span class="op">&lt;</span>I<span class="op">,</span> F<span class="op">&gt;</span></span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>    I<span class="op">:</span> <span class="bu">Iterator</span><span class="op">,</span> F<span class="op">:</span> <span class="bu">FnMut</span>(<span class="pp">I::</span>Item) <span class="op">-&gt;</span> B <span class="op">{</span></span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> Item <span class="op">=</span> B<span class="op">;</span></span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> next(<span class="op">&amp;</span><span class="kw">mut</span> <span class="kw">self</span>) <span class="op">-&gt;</span> <span class="dt">Option</span><span class="op">&lt;</span>B<span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">self</span><span class="op">.</span>iter<span class="op">.</span>next()<span class="op">.</span>map(<span class="op">&amp;</span><span class="kw">mut</span> <span class="kw">self</span><span class="op">.</span>f)</span>
-<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb40"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> Map<span class="op">&lt;</span>I<span class="op">,</span> F<span class="op">&gt;</span> <span class="op">{</span>              <span class="kw">pub</span> <span class="kw">struct</span> Filter<span class="op">&lt;</span>I<span class="op">,</span> P<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    iter<span class="op">:</span> I<span class="op">,</span>                            iter<span class="op">:</span> I<span class="op">,</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>    f<span class="op">:</span> F<span class="op">,</span>                               f<span class="op">:</span> F<span class="op">,</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>                                   <span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span><span class="op">&lt;</span>I<span class="op">,</span> F<span class="op">&gt;</span> <span class="bu">Iterator</span> <span class="cf">for</span> Map<span class="op">&lt;</span>I<span class="op">,</span> F<span class="op">&gt;</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    I<span class="op">:</span> <span class="bu">Iterator</span><span class="op">,</span> F<span class="op">:</span> <span class="bu">FnMut</span>(<span class="pp">I::</span>Item) <span class="op">-&gt;</span> B <span class="op">{</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> Item <span class="op">=</span> B<span class="op">;</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> next(<span class="op">&amp;</span><span class="kw">mut</span> <span class="kw">self</span>) <span class="op">-&gt;</span> <span class="dt">Option</span><span class="op">&lt;</span>B<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">self</span><span class="op">.</span>iter<span class="op">.</span>next()<span class="op">.</span>map(<span class="op">&amp;</span><span class="kw">mut</span> <span class="kw">self</span><span class="op">.</span>f)</span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </section>
 <section id="aggressive-inlining" class="slide level2">
 <h2>Aggressive Inlining</h2>
